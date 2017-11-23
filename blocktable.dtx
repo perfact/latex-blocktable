@@ -25,7 +25,6 @@
 %<*driver>
 \documentclass{ltxdoc}
 \usepackage{blocktable}
-\usepackage{enumitem}
 \EnableCrossrefs
 \CodelineIndex
 \RecordChanges
@@ -37,7 +36,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{0}
+% \CheckSum{262}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -75,7 +74,7 @@
 % The package \textsf{blocktable} uses an unusual approach to table layouts,
 % specifically designed for:
 % 
-% \begin{itemize}[topsep=0pt]
+% \begin{itemize}
 % \item Tables spanning several pages.
 % \item Tables using a previously specified, fixed layout.
 % \item Tables using multirow arrangements with page breaks inside a
@@ -101,7 +100,7 @@
 % 
 % The mechanics of typesetting in \textsf{blocktable} are very simple:
 % 
-% \begin{itemize}[topsep=0pt]
+% \begin{itemize}
 % \item
 %   Lines added to the block layout with |\blockline| are accumulated in
 %   an unbreakable vertical box. Each of these lines always span the
@@ -189,7 +188,7 @@
 % \DescribeMacro{blockwhitestrip}|\blockwhitestrip| after the
 % |\block|. This adds a long white box which extends to the right.
 % 
-% \subsection{Drawing Lines With Rules}
+% \subsection{Using Rules to Draw Lines}
 % 
 % \DescribeMacro{blockrul} A simple horizontal rule can be produced
 % with |\blockrul|\marg{width}. This is centered by default.
@@ -238,7 +237,7 @@
 % 
 % This code produces this output:
 % 
-% \vspace{\parskip}
+% \medskip
 % 
 % \begin{blocktable}
 % 
@@ -260,7 +259,7 @@
 % 
 % The most important thing about page breaks in \textsf{blocktable} is
 % that by default, no breaking is allowed at all. Each |\blockline| that
-% you add is pushed onto an unbreakable vbox.
+% you add is appended to an unbreakable vbox.
 % 
 % \DescribeMacro{blockcr} If you want to allow a page break after a
 % block, you must remember to use |\blockcr|. This macro measures the
@@ -269,12 +268,12 @@
 % fit, a page break is added, along with a footer for the finished page
 % and a header for the new one.
 % 
-% Because of this, it is imperative that you should not put a |\blockcr|
+% Because of this, please remember that you should not put a |\blockcr|
 % just before the end of the environment, because this could lead to a
 % silly page break resulting in just a header and the last footer
 % appearing on the last page.
 % 
-% \subsection{Continue Marks in Header and Footer}
+% \subsection{Dynamic Marks in Headers and Footers}
 % 
 % For some tables, you will wish to keep a counter or an intermediate
 % sum, which you can use in the footer and header as ``continued''
@@ -420,7 +419,7 @@
 % \section*{Larger Blocks}
 % 
 % This table does not allow a break after each line, but asks for blocks
-% of five lines to stay glued together.
+% of five lines to stay together.
 % 
 % \bigskip
 % 
@@ -497,7 +496,6 @@
 %   \myblockoffivelines \myblockoffivelines \myblockoffivelines
 %   \myblockoffivelines \myblockoffivelines
 %   \myblockoffivelines \myblockoffivelines \myblockoffivelines
-%   \myblockoffivelines \myblockoffivelines
 %   \myblockoffivelines \myblockoffivelines \myblockoffivelines
 %   \global\advance\mycount1\relax
 %   \rul\myline\myline\myline\myline\myline
