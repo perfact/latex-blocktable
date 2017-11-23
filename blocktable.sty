@@ -1,0 +1,134 @@
+%%
+%% This is file `blocktable.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% blocktable.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2017 by PerFact Innovation GmbH & Co. KG
+%% 
+%% This file may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either
+%% version 1.3 of this license or (at your option) any later
+%% version.  The latest version of this license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.3 or later is part of all distributions of
+%% LaTeX version 2005/12/01 or later.
+%% 
+\NeedsTeXFormat{LaTeX2e}[2005/12/01]
+\ProvidesPackage{blocktable}
+   [2017/11/22 v1.0 Multi-Page Tables from Blocks]
+\def\convertto#1#2{\strip@pt\dimexpr #2*65536/\number\dimexpr 1#1}
+\def\tocm#1{\convertto{cm}{#1}\,cm}
+\def\texttocm#1{\convertto{cm}{#1}cm}
+\newif\ifblocktracing
+\blocktracingfalse
+\def\blocktrace#1{%
+  \ifblocktracing%
+    \GenericWarning
+      {blocktable}
+      {BT #1 at pagetotal=\texttocm{\the\pagetotal},
+                pagegoal=\texttocm{\the\pagegoal}.}%
+  \fi}
+\newdimen\blockfooterht
+\newbox\blockvbox
+\newdimen\blockprevht
+\newbox\blocktmpbox
+\newdimen\blocktmpdim
+\newif\ifblockstarted
+\def\blockclearbox{\global\setbox\blockvbox\vbox{\kern0pt\relax}}
+\def\blockaddtobox#1{\global\setbox\blockvbox\vbox{%
+  \box\blockvbox\nointerlineskip{#1}}}
+\def\blockspace#1{\blockaddtobox{\kern#1\relax}}
+\def\softraggedright{\rightskip0pt plus2em\spaceskip.3333em%
+  \xspaceskip.5em\relax}
+\def\blockheader{}
+\def\blockfooter{}
+\def\blockfirstheader{}
+\def\blocklastfooter{}
+\def\blocksetheader#1{\gdef\blockheader{#1}}
+\def\blocksetfooter#1{\gdef\blockfooter{#1}%
+  \setbox\blocktmpbox\box\blockvbox%
+  \blockclearbox\blockfooter%
+  \global\blockfooterht=\ht\blockvbox%
+  \global\advance\blockfooterht\dp\blockvbox%
+  \blockaddtobox{\box\blocktmpbox}%
+}
+\def\blocksetfirstheader#1{\gdef\blockfirstheader{#1}}
+\def\blocksetlastfooter#1{\gdef\blocklastfooter{#1}}
+\def\blockline#1{\blockaddtobox{\hbox to \hsize{%
+      \hfil{\ignorespaces #1}\hfil}\nointerlineskip}}
+\def\blocklineto#1#2{\blockline{\hbox to #1{#2}}}
+\def\blockwhitestrip{\hbox to 0pt{%
+    \color{white}%
+    \rule[-.6ex]{\textwidth}{2.9ex}%
+    \hss}}
+\def\blockfirststrut{\rule{0pt}{2.4ex}}
+\def\blocklaststrut{\rule[-0.8ex]{0pt}{1ex}}
+\def\blocktext#1{\blockfirststrut\ignorespaces #1\blocklaststrut}
+\def\blockpar#1#2{% width, material
+  \parbox[t]{#1}{%
+    \softraggedright%
+    \blocktext{\ignorespaces #2}}%
+  \ignorespaces}
+\def\block#1#2{% width, material
+  \hbox to #1{%
+    \blocktext{#2}\hss}%
+  \ignorespaces}
+\def\blocklln{%
+  \vline\kern-0.4pt\kern1mm}
+\def\blockmln{%
+  \kern1mm\kern-0.2pt\vline\kern-0.2pt\kern1mm}
+\def\blockrln{%
+  \kern1mm\kern-0.4pt\vline}
+\def\blockrul#1{%
+  \blockline{%
+    \rule{#1}{0.4pt}%
+  }%
+}
+\def\vrulekern{\kern0.4pt\relax}
+\def\negvrulekern{\kern-0.4pt\relax}
+\def\blockcrhook{}
+\def\blockcr{%
+  \blockcrhook%
+  \global\blocktmpdim=\ht\blockvbox%
+  \global\advance\blocktmpdim\dp\blockvbox%
+  \global\advance\blocktmpdim\blockfooterht%
+  \global\advance\blocktmpdim\pagetotal%
+  \ifdim\blocktmpdim>\pagegoal{%
+    \blocktrace{break}%
+    \setbox\blocktmpbox\box\blockvbox%
+    \ifblockstarted\blockfooter\fi%
+    \box\blockvbox\nointerlineskip%
+    \penalty-10000%
+    \ifblockstarted\blockheader\fi%
+    \blockaddtobox{\box\blocktmpbox}%
+    \global\blockprevht=\ht\blockvbox%
+    \box\blockvbox\nointerlineskip%
+  }\else{%
+    \blocktrace{flow}%
+    \global\blockprevht=\ht\blockvbox%
+    \box\blockvbox\nointerlineskip%
+  }\fi%
+  \global\blockstartedtrue%
+}
+\def\blockbegin{%
+  \blocktrace{begin}%
+  \blockclearbox\blockfirstheader%
+  \blockstartedfalse%
+}
+\def\blockend{%
+  \blocktrace{end}
+  \blocklastfooter%
+  \blockcr%
+  \box\blockvbox\nointerlineskip%
+}
+\newenvironment{blocktable}{\blockbegin}{\blockend}
+\endinput
+%%
+%% End of file `blocktable.sty'.

@@ -1,0 +1,837 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2017 by PerFact Innovation GmbH & Co. KG
+%
+% This file may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either
+% version 1.3 of this license or (at your option) any later
+% version.  The latest version of this license is in:
+%
+%    http://www.latex-project.org/lppl.txt
+%
+% and version 1.3 or later is part of all distributions of
+% LaTeX version 2005/12/01 or later.
+%
+% \fi
+%
+% \iffalse
+%<*driver>
+\ProvidesFile{blocktable.dtx}
+%</driver>
+%<package>\NeedsTeXFormat{LaTeX2e}[2005/12/01]
+%<package>\ProvidesPackage{blocktable}
+%<package>   [2017/11/22 v1.0 Multi-Page Tables from Blocks]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{blocktable}
+\usepackage{enumitem}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{blocktable.dtx}
+  \PrintChanges
+  \PrintIndex
+\end{document}
+%</driver>
+% \fi
+%
+% \CheckSum{0}
+%
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+%
+%
+% \changes{v1.0}{2017/11/22}{Initial version}
+%
+% \GetFileInfo{blocktable.sty}
+%
+% \DoNotIndex{\def}
+%
+%
+% \title{The \textsf{blocktable} package\thanks{This document
+%   corresponds to \textsf{blocktable}~\fileversion,
+%   dated~\filedate.}}
+% \author{J\'an Jockusch\\ \texttt{jan.jockusch@perfact.de}}
+%
+% \maketitle
+%
+% \section{Introduction}
+% 
+% The package \textsf{blocktable} uses an unusual approach to table layouts,
+% specifically designed for:
+% 
+% \begin{itemize}[topsep=0pt]
+% \item Tables spanning several pages.
+% \item Tables using a previously specified, fixed layout.
+% \item Tables using multirow arrangements with page breaks inside a
+%   multirow.
+% \item Tables requiring special action on page breaks, like inserting
+%   additional material conditionally.
+% \end{itemize}
+% 
+% These scenarios can only be covered incompletely in either
+% \textsf{longtable} or \textsf{supertabular}. If you start out with one
+% of these packages and run into overly obtuse programming, then this
+% package might be for you.
+% 
+% But beware, this package operates with lower-level commands that the
+% other table building packages, and demands that you specify all layout
+% details yourself. So the learning curve is a little steeper.
+% 
+% For instance, the package does not support automatic stretching and
+% shrinking of table cells. It does not calculate a global line
+% length. It is much easier to produce jagged layouts than to produce
+% straight ones, because you have to do the math of making each line the
+% same size.  You have been warned.
+% 
+% The mechanics of typesetting in \textsf{blocktable} are very simple:
+% 
+% \begin{itemize}[topsep=0pt]
+% \item
+%   Lines added to the block layout with |\blockline| are accumulated in
+%   an unbreakable vertical box. Each of these lines always span the
+%   complete available horizontal space.
+% \item 
+%   Only when the user expressly allows a page break by issuing
+%   |\blockcr|, the engine calculates if the accumulated material will
+%   fit on the page and either puts the material on the page directly,
+%   or replaces it with |\blockfooter|, followed by a page break and
+%   |\blockheader| followed by the collected material.
+% \end{itemize}
+% 
+% Because this is so simple, it allows for low-level tweaking that is
+% very hard to replicate in table environments based on \TeX's alignment
+% engine, e.g. making a table cell wider or narrower in individual
+% lines. In \textsf{longtable}, you have to do weird |\multicolumn|
+% trickery to get that, here you just use differently sized horizontal
+% boxes in one line.
+% 
+% \section{Usage}
+% 
+% The package gives you an environment, |blocktable|, with no
+% parameters.  Before starting the environment, you prepare by defining
+% headers and footers, and marks behaviour.
+% 
+% \subsection{Headers and Footers}
+% 
+% \DescribeMacro{blocksetfirstheader} \DescribeMacro{blocksetheader} Use
+% |\blocksetfirstheader|\marg{commands} and
+% |\blocksetheader|\marg{commands} to define commands which will
+% evaluate at the very beginning of the environment and after each page
+% break respectively. The \meta{commands} should push vertical material
+% on the display stack by using |\blockline|.
+% 
+% The commands are used to set the global macros |\blockfirstheader| and
+% |\blockheader|, which may afterwards be used at will. One common use
+% is to use |\blockfirstheader| in |\blockheader|, adding ``continued
+% from'' information.
+% 
+% \DescribeMacro{blocksetfooter}
+% \DescribeMacro{blocksetlastfooter}
+% In the same way, define footers by using
+% |\blocksetfooter|\marg{commands} and
+% |\blocksetlastfooter|\marg{commands} containing |\blockline| commands
+% which put vertical material on the display stack.
+% 
+% These commands define |\blockfooter| and |\blocklastfooter| as macros
+% which will evaluate before each page break and at the very end of the
+% environment respectively.
+% 
+% \subsection{Layouting the Table}
+% 
+% \DescribeEnv{blocktable} After defining these settings, the
+% environment may be started. At the start of the environment, the first
+% header is immediately put on the display stack, so at least
+% |\blocksetfirstheader| should be done before starting the
+% environment. If you define it after beginning the environment, you
+% must also manually add it before starting the tabular proper.
+% 
+% \DescribeMacro{blockline} In the environment you layout the material
+% in vertical boxes, which must be pushed into the internal stack,
+% usually by calling |\blockline|\marg{commands}. 
+% 
+% Inside each |\blockline| arbitrary hboxes may be added. Because the
+% lines are |\hsize| wide, by default |\hfil|s are added to the left and
+% right of your input to center the output if it is narrower. Add
+% |\hfill| left and/or right of the material to justify right or left.
+% 
+% \DescribeMacro{blockpar} Several helpers are available to build the
+% horizontal material in each line. Use
+% |\blockpar|\marg{width}\marg{material} to generate a parbox of width
+% \meta{width} and typeset \meta{material} in it. Because it is a
+% parbox, you can use |\\| to break lines. The paragraphs are typeset
+% ragged right. Please observe that a trailing |\\| will produce ugly
+% additional space.
+% 
+% \DescribeMacro{block} To just typeset numbers or other material which
+% will be all in one line, use |\block|\marg{width}\marg{material}. The
+% material will be aligned to the left by default. Prepend |\hfill| for
+% right alignment or |\hss| for centered alignment.
+% 
+% If the material is too large to fit, it will overlap the next column,
+% because there's an |\hss| inside the |\block| macro. If you want that
+% overlap to be taped over, add a
+% \DescribeMacro{blockwhitestrip}|\blockwhitestrip| after the
+% |\block|. This adds a long white box which extends to the right.
+% 
+% \subsection{Drawing Lines With Rules}
+% 
+% \DescribeMacro{blockrul} A simple horizontal rule can be produced
+% with |\blockrul|\marg{width}. This is centered by default.
+% 
+% If you need different rules you can build them out of horizontal rule
+% and kern segments.
+% 
+% When working with headers and footers, you
+% will find that often each header should end with a horizontal line and
+% that the footer should start with a horizontal line. This leads to at
+% least some lines appearing twice as thick.
+% 
+% \DescribeMacro{blockspace} To compensate for this, it is advised to
+% add negative space of 0.4\,pt at the end of the header, and this is
+% what |\blockspace|\marg{dimen} is for.
+% 
+% \DescribeMacro{blocklln} \DescribeMacro{blockmln}
+% \DescribeMacro{blockrln} If you want to keep track of the width of
+% your line and you choose to use the metric system, the macros
+% |\blocklln|, |\blockrln|, and |\blockmln| yield a vertical line flush
+% left in a millimeter of space, a right-flushed line and a centered
+% line in a two-millimeter space respectively.
+% 
+% \subsection{Basic Example}
+% 
+% Using the macros described above, we can construct a simple one-line
+% table (we do not define any footers or headers yet) as follows:
+% 
+% \begin{verbatim}
+% \begin{blocktable}
+% 
+%   \blockrul{104mm}
+%   \blockline{
+%     \blocklln
+%     \block{80mm}{The contents of a field}
+%     \blockmln
+%     \block{20mm}{Another field}
+%     \blockrln
+%   }
+% 
+%   \blockrul{104mm}
+%   \blockspace{-0.4pt}
+% 
+% \end{blocktable}
+% \end{verbatim}
+% 
+% This code produces this output:
+% 
+% \vspace{\parskip}
+% 
+% \begin{blocktable}
+% 
+%   \blockrul{104mm}
+%   \blockline{
+%     \blocklln
+%     \block{80mm}{The contents of a field}
+%     \blockmln
+%     \block{20mm}{Another field}
+%     \blockrln
+%   }
+% 
+%   \blockrul{104mm}
+%   \blockspace{-0.4pt}
+% 
+% \end{blocktable}
+% 
+% \subsection{Controlling Page Breaks}
+% 
+% The most important thing about page breaks in \textsf{blocktable} is
+% that by default, no breaking is allowed at all. Each |\blockline| that
+% you add is pushed onto an unbreakable vbox.
+% 
+% \DescribeMacro{blockcr} If you want to allow a page break after a
+% block, you must remember to use |\blockcr|. This macro measures the
+% material collected so far and compares it with the remaining space
+% left (taking into account the footer height). If the material will not
+% fit, a page break is added, along with a footer for the finished page
+% and a header for the new one.
+% 
+% Because of this, it is imperative that you should not put a |\blockcr|
+% just before the end of the environment, because this could lead to a
+% silly page break resulting in just a header and the last footer
+% appearing on the last page.
+% 
+% \subsection{Continue Marks in Header and Footer}
+% 
+% For some tables, you will wish to keep a counter or an intermediate
+% sum, which you can use in the footer and header as ``continued''
+% hints.
+% 
+% \DescribeMacro{blockcrhook} To allow this, use the macro
+% |\blockcrhook|\marg{commands}, which contains commands to execute
+% immediately before each |\blockcr|. Because this is called immediately
+% before the possible rendering of |\blockfooter| and |\blockheader|,
+% the variables set there will be used in the next page break, if it
+% happens.
+% 
+% \section{Examples}
+% 
+% The following examples double as tests of the basic
+% functionality. Please refer to the code to see how the different
+% behaviours were obtained.
+% 
+% The debugging output shows the \TeX{} internal variables |\pagetotal|
+% and |\pagegoal|, along with the height of the previous accumulated
+% vbox.
+% 
+% \newcount\mycount
+% \newcount\myprevcount
+% \newcount\mynextcount
+% 
+% \def\lln{\blocklln}
+% \def\mln{\blockmln}
+% \def\rln{\blockrln}
+% \def\rul{\blockrul{100mm}}
+% 
+% \def\blockcrhook{%
+%   \global\myprevcount=\mynextcount%
+%   \global\mynextcount=\mycount%
+% }
+% 
+% \subsection{Basic Single Lines}
+% 
+% This is a simple table  which might be spread out to several pages.
+% We allow breaks after each line.
+% 
+% \bigskip
+% 
+% \blocksetfirstheader{%
+%   \rul%
+%   \blockline{%
+%     \lln%
+%     \blockpar{8mm}{%
+%       No.}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Total}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Goal}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Previous Height}%
+%     \rln%
+%   }%
+%   \rul%
+%   \blockspace{-0.4pt}%
+% }
+% 
+% \blocksetheader{
+%   \blockfirstheader%
+%   \blockline{%
+%     \lln%
+%     \blockpar{98mm}{%
+%       Continued from previous page at \number\myprevcount}%
+%     \rln%
+%   }%
+%   \rul%
+%   \blockspace{-0.4pt}
+% }
+% 
+% \blocksetfooter{%
+%   \rul%
+%   \blockline{%
+%     \lln%
+%     \blockpar{98mm}{%
+%       Continued on next page at \number\mynextcount}%
+%     \rln%
+%   }%
+%   \rul%
+% }
+% 
+% \blocksetlastfooter{%
+%   \rul%
+% }
+% 
+% \def\myline{%
+%   \blockline{%
+%     \lln%
+%     \blockpar{8mm}{%
+%       \number\mycount}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       \tocm{\the\pagetotal}}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       \tocm{\the\pagegoal}}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       \tocm{\the\blockprevht}}%
+%     \rln%
+%   }%  
+% }
+% 
+% \def\mysingleline{\rul
+%   \global\advance\mycount1\relax%
+%   \myline%
+%   \blockcr%
+% }
+% 
+% \def\myblockoffivelines{\rul
+%   \global\advance\mycount1\relax%
+%   \myline%
+%   \myline\myline\myline\myline%
+%   \blockcr%
+% }
+% 
+% \mycount0\myprevcount0\mynextcount0\relax
+% 
+% \begin{blocktable}
+%   
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline \mysingleline \mysingleline \mysingleline
+%   \mysingleline \mysingleline
+%   \global\advance\mycount1\relax
+%   \rul\myline
+%     
+% \end{blocktable}
+% 
+% \section*{Larger Blocks}
+% 
+% This table does not allow a break after each line, but asks for blocks
+% of five lines to stay glued together.
+% 
+% \bigskip
+% 
+% \mycount0\myprevcount0\mynextcount0\relax
+% 
+% \begin{blocktable}
+% 
+%   \myblockoffivelines \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines
+%   \global\advance\mycount1\relax%
+%   \rul\myline\myline\myline\myline\myline
+% 
+% \end{blocktable}
+% 
+% \section*{Fat Header}
+% 
+% This table still uses large blocks, and adds a fat header, but only on
+% follow-up pages.
+% 
+% \bigskip
+% 
+% \blocksetheader{%
+%   \rul%
+%   \blockline{%
+%     \lln%
+%     \blockpar{8mm}{%
+%       No.}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Total}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Goal}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Previous Height \\[3mm]
+%       continued \\
+%       from count \number\myprevcount
+%       }%
+%     \rln%
+%   }%
+%   \rul%
+%   \blockspace{-0.4pt}
+% }
+% 
+% \blocksetfirstheader{%
+%   \rul%
+%   \blockline{%
+%     \lln%
+%     \blockpar{8mm}{%
+%       No.}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Total}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Goal}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Previous Height}%
+%     \rln%
+%   }%
+%   \rul%
+%   \blockspace{-0.4pt}
+% }
+% 
+% \mycount0\myprevcount0\mynextcount0\relax
+% 
+% \begin{blocktable}
+% 
+%   \myblockoffivelines \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines \myblockoffivelines
+%   \global\advance\mycount1\relax
+%   \rul\myline\myline\myline\myline\myline
+% 
+% \end{blocktable}
+% 
+% 
+% \section*{Fat Header And Footer}
+% 
+% We add an enourmous footer and an even more terrible last footer. Even
+% though the last entry would comfortably fit on the last but one page,
+% a page break is done to have at least one entry before the abominable
+% footer.
+% 
+% \bigskip
+% 
+% \blocksetfooter{%
+%   \rul%
+%   \blockline{%
+%     \lln%
+%     \blockpar{8mm}{%
+%       No.}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Total}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Goal}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Previous Height\\[3mm]
+%       continued at \number\mynextcount\\
+%       on the next page
+%     }%
+%     \rln%
+%   }%
+%   \rul%
+% }
+% 
+% \blocksetlastfooter{%
+%   \rul%
+%   \blockline{%
+%     \lln%
+%     \blockpar{8mm}{%
+%       No.}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Total}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Page Goal}%
+%     \mln%
+%     \blockpar{28mm}{%
+%       Previous Height\\[3mm]
+%       too\\
+%       much\\
+%       information\\
+%       here\\
+%       really,\\     
+%       too\\
+%       much\\
+%       information\\
+%       here\\
+%       really,\\     
+%       too\\
+%       much\\
+%       information\\
+%       here
+%     }%
+%     \rln%
+%   }%
+%   \rul%
+% }
+% 
+% \mycount0\myprevcount0\mynextcount0\relax
+% 
+% \begin{blocktable}
+% 
+%   \myblockoffivelines \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines
+%   \myblockoffivelines \myblockoffivelines \myblockoffivelines
+%   \global\advance\mycount1\relax
+%   \rul\myline\myline\myline\myline\myline
+%   
+% \end{blocktable}
+% 
+%
+% \StopEventually{}
+%
+% \section{Implementation}
+%
+% The package starts out be defining |\convertto|, |\tocm|, and
+% |\texttocm| for easier debugging.
+%
+% \textbf{TODO:} The names of these macros may clash with definitions
+% outside the package, which is not good.
+%
+%    \begin{macrocode}
+\def\convertto#1#2{\strip@pt\dimexpr #2*65536/\number\dimexpr 1#1}
+\def\tocm#1{\convertto{cm}{#1}\,cm}
+\def\texttocm#1{\convertto{cm}{#1}cm}
+%    \end{macrocode}
+%
+% With |\blocktrace| we can enable tracing messages to be output during
+% the \TeX{} run. The switch to enable tracing is |\blocktracingtrue|.
+%
+%    \begin{macrocode}
+\newif\ifblocktracing
+\blocktracingfalse
+\def\blocktrace#1{%
+  \ifblocktracing%
+    \GenericWarning
+      {blocktable}
+      {BT #1 at pagetotal=\texttocm{\the\pagetotal},
+                pagegoal=\texttocm{\the\pagegoal}.}%
+  \fi}
+%    \end{macrocode}
+%
+% We define several registers to store the estimated footer height, the
+% accumulated vertical material, the height of the previously made vbox.
+%
+%    \begin{macrocode}
+\newdimen\blockfooterht
+\newbox\blockvbox
+\newdimen\blockprevht
+%    \end{macrocode}
+%
+% Define a temporary storage for the accumulated material, a temporary
+% register for height calculations, and an internal boolean which tells
+% |\blockcr| not to begin the table with a page break.
+%
+%    \begin{macrocode}
+\newbox\blocktmpbox
+\newdimen\blocktmpdim
+\newif\ifblockstarted
+%    \end{macrocode}
+%
+% Helpers for internal use: |\blockclearbox| clears the vertical
+% accumulator, |\blockaddtobox| adds to the accumulator.
+%
+%    \begin{macrocode}
+\def\blockclearbox{\global\setbox\blockvbox\vbox{\kern0pt\relax}}
+\def\blockaddtobox#1{\global\setbox\blockvbox\vbox{%
+  \box\blockvbox\nointerlineskip{#1}}}
+%    \end{macrocode}
+%
+% The macro |\blockspace| is externally used mostly to make the
+% effective height of horizontal lines zero.
+%
+%    \begin{macrocode}
+\def\blockspace#1{\blockaddtobox{\kern#1\relax}}
+%    \end{macrocode}
+%
+% Better raggedright taken from Knuth's plain \TeX{}.  This is generally
+% useful, so we make it global.
+%
+% \textbf{TODO:} But again, this does not conform to the
+% namespace regulations.
+%
+%    \begin{macrocode}
+\def\softraggedright{\rightskip0pt plus2em\spaceskip.3333em%
+  \xspaceskip.5em\relax}
+%    \end{macrocode}
+%
+% Here are the internal macro storage spaces for headers and footers.
+%
+%    \begin{macrocode}
+\def\blockheader{}
+\def\blockfooter{}
+\def\blockfirstheader{}
+\def\blocklastfooter{}
+%    \end{macrocode}
+%
+% This is the exposed API of the headers and footers mechanics, which is
+% also in the documentation above.
+%
+%    \begin{macrocode}
+\def\blocksetheader#1{\gdef\blockheader{#1}}
+\def\blocksetfooter#1{\gdef\blockfooter{#1}%
+  \setbox\blocktmpbox\box\blockvbox%
+  \blockclearbox\blockfooter%
+  \global\blockfooterht=\ht\blockvbox%
+  \global\advance\blockfooterht\dp\blockvbox%
+  \blockaddtobox{\box\blocktmpbox}%
+}
+\def\blocksetfirstheader#1{\gdef\blockfirstheader{#1}}
+\def\blocksetlastfooter#1{\gdef\blocklastfooter{#1}}
+%    \end{macrocode}
+%
+% Here are the definitions of |\blockline| and |\blocklineto|, the
+% essential layouting API.
+%
+%    \begin{macrocode}
+\def\blockline#1{\blockaddtobox{\hbox to \hsize{%
+      \hfil{\ignorespaces #1}\hfil}\nointerlineskip}}
+\def\blocklineto#1#2{\blockline{\hbox to #1{#2}}}
+%    \end{macrocode}
+%
+% The |\blockwhitestrip| patch for cutting off material that's too long
+% is here, as well as the |\blocktext| macro used in |\blockpar|.
+%
+%    \begin{macrocode}
+\def\blockwhitestrip{\hbox to 0pt{%
+    \color{white}%
+    \rule[-.6ex]{\textwidth}{2.9ex}%
+    \hss}}
+\def\blockfirststrut{\rule{0pt}{2.4ex}}
+\def\blocklaststrut{\rule[-0.8ex]{0pt}{1ex}}
+\def\blocktext#1{\blockfirststrut\ignorespaces #1\blocklaststrut}
+%    \end{macrocode}
+%
+% Layouting parboxes in \textsf{blocktable} is ragged-right by default
+% and adds some struts to ensure good spacing.
+%
+%    \begin{macrocode}
+\def\blockpar#1#2{% width, material
+  \parbox[t]{#1}{%
+    \softraggedright%
+    \blocktext{\ignorespaces #2}}%
+  \ignorespaces}
+%    \end{macrocode}
+%
+% The |\block| macro produces an hbox of defined width and enforces that
+% width by adding |\hss| at the end. Because of this, prepending
+% |\hfill| in front of the input results in right alignment, and
+% prepending |\hss| results in centering.
+%
+%    \begin{macrocode}
+\def\block#1#2{% width, material
+  \hbox to #1{%
+    \blocktext{#2}\hss}%
+  \ignorespaces}
+%    \end{macrocode}
+%
+% A vertical line on the left of a millimeter of space,
+% a vertical line in the middle of a two-millimeter space, and
+% a vertical line on the right of a millimeter of space.
+%
+%    \begin{macrocode}
+\def\blocklln{%
+  \vline\kern-0.4pt\kern1mm}
+\def\blockmln{%
+  \kern1mm\kern-0.2pt\vline\kern-0.2pt\kern1mm}
+\def\blockrln{%
+  \kern1mm\kern-0.4pt\vline}
+\def\blockrul#1{%
+  \blockline{%
+    \rule{#1}{0.4pt}%
+  }%
+}
+%    \end{macrocode}
+%
+% Hints for multicolumn typesetting: |\vrulekern| is a kern which
+% compensates for a missing rule, |\negvrulekern| is a kern which
+% backtracks the width of a rule.
+%
+%    \begin{macrocode}
+\def\vrulekern{\kern0.4pt\relax}
+\def\negvrulekern{\kern-0.4pt\relax}
+%    \end{macrocode}
+%
+% The hook |\blockcrhook| is initialized before defining |\blockcr|,
+% where it is used to perform tasks which should be done immediately
+% before typesetting the page break.
+%
+%    \begin{macrocode}
+\def\blockcrhook{}
+\def\blockcr{%
+  \blockcrhook%
+%    \end{macrocode}
+%
+% The space needed for the box and the footer are added to the current
+% position on the page to determine whether everything will still fit.
+%
+%    \begin{macrocode}
+  \global\blocktmpdim=\ht\blockvbox%
+  \global\advance\blocktmpdim\dp\blockvbox%
+  \global\advance\blocktmpdim\blockfooterht%
+  \global\advance\blocktmpdim\pagetotal%
+  \ifdim\blocktmpdim>\pagegoal{%
+    \blocktrace{break}%
+%    \end{macrocode}
+%
+% To perform the page break, we first store the contents of the vbox,
+% then we set the footer (but not at the very beginning of the table),
+% prepend a page break (the penalty), then add a header (but again not
+% at the very beginning). Then, we can add the collected material an
+% push everything out to the page.
+%
+%    \begin{macrocode}
+    \setbox\blocktmpbox\box\blockvbox%
+    \ifblockstarted\blockfooter\fi%
+    \box\blockvbox\nointerlineskip%
+    \penalty-10000%
+    \ifblockstarted\blockheader\fi%
+    \blockaddtobox{\box\blocktmpbox}%
+    \global\blockprevht=\ht\blockvbox%
+    \box\blockvbox\nointerlineskip%
+  }\else{%
+    \blocktrace{flow}%
+%    \end{macrocode}
+%
+% If the box fits (along with a possible footer), we just push it out
+% onto the page.
+%
+%    \begin{macrocode}
+    \global\blockprevht=\ht\blockvbox%
+    \box\blockvbox\nointerlineskip%
+  }\fi%
+  \global\blockstartedtrue%
+}
+%    \end{macrocode}
+%
+% The environment and its helper functions. At the beginning typeset the
+% first header. At the ending typeset the last footer and perform one
+% last page break.
+%
+%    \begin{macrocode}
+\def\blockbegin{%
+  \blocktrace{begin}%
+  \blockclearbox\blockfirstheader%
+  \blockstartedfalse%
+}
+\def\blockend{%
+  \blocktrace{end}
+  \blocklastfooter%
+  \blockcr%
+  \box\blockvbox\nointerlineskip%
+}
+\newenvironment{blocktable}{\blockbegin}{\blockend}
+\endinput
+%    \end{macrocode}
+%
+% And that is the whole package. Enjoy!
+%
+% \Finale
+\endinput
